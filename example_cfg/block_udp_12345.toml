@@ -1,0 +1,11 @@
+default = "allow"
+
+[[rules]]
+action = "block"
+priority = 10
+protocol = "udp"
+
+[rules.dst_port]
+port_begin = 12345
+port_end = 12345
+

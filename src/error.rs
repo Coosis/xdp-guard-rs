@@ -9,6 +9,8 @@ pub enum Error {
     EmptyRule{ r: crate::ruleset::FirewallRule },
     #[error("map update error")]
     MapUpdateErr,
+    #[error("metrics error")]
+    MetricsErr,
     #[error("invalid rule: {r:?}")]
     InvalidRule{ r: crate::ruleset::FirewallRule }
 }

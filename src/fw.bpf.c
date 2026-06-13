@@ -26,6 +26,40 @@ struct {
     __type(value, struct fw_meta);
 } fw_meta SEC(".maps");
 
+struct {
+    __uint(type, BPF_MAP_TYPE_PERCPU_ARRAY);
+    __uint(max_entries, 1);
+    __type(key, __u32);
+    __type(value, struct fw_stats);
+} fw_stats SEC(".maps");
+
+struct {
+    __uint(type, BPF_MAP_TYPE_PERCPU_ARRAY);
+    __uint(max_entries, MAX_RULES);
+    __type(key, __u32);
+    __type(value, __u64);
+} rule_matches SEC(".maps");
+
+static __always_inline int accept_packet(struct fw_stats *stats) {
+	if(stats != NULL) stats->accepted_packets++;
+	return XDP_PASS;
+}
+
+static __always_inline int drop_packet(struct fw_stats *stats) {
+	if(stats != NULL) stats->dropped_packets++;
+	return XDP_DROP;
+}
+
+static __always_inline void record_rate_limit_hit(struct fw_stats *stats) {
+	if(stats != NULL) stats->rate_limit_hits++;
+}
+
+static __always_inline void record_rule_match(__u32 rule_idx) {
+	if(rule_idx >= MAX_RULES) return;
+	__u64 *matches = bpf_map_lookup_elem((void *)&rule_matches, &rule_idx);
+	if(matches != NULL) (*matches)++;
+}
+
 #define RULE_NOMATCH 0
 #define RULE_MATCH_ALLOW 1
 #define RULE_MATCH_TB_DENY 2
@@ -133,30 +167,32 @@ static __always_inline int match_rule(
 
 SEC("xdp") int xdp_fw(struct xdp_md *ctx) {
 	__u32 zero = 0;
+	struct fw_stats *stats = bpf_map_lookup_elem((void *)&fw_stats, &zero);
+
 	struct fw_meta *fwm = bpf_map_lookup_elem((void *)&fw_meta, &zero);
-	if(fwm == NULL) return XDP_PASS;
+	if(fwm == NULL) return accept_packet(stats);
 
 	__u32 active = fwm->active_ruleset;
 	if (active >= NUM_GENERATIONS)
-		return XDP_PASS;
+		return accept_packet(stats);
 	struct fw_ruleset *rules = bpf_map_lookup_elem((void *)&rulesets, &active);
-	if(rules == NULL) return XDP_PASS;
+	if(rules == NULL) return accept_packet(stats);
 
 	// parsing
 	void *data = (void *)(long)ctx->data;
 	void *data_end = (void *)(long)ctx->data_end;
 
 	struct ethhdr *eth = data;
-	if( (void *)(eth + 1) > data_end ) return XDP_PASS; // not enough data even for eth header
+	if( (void *)(eth + 1) > data_end ) return accept_packet(stats); // not enough data even for eth header
 	if (eth->h_proto != bpf_htons(ETH_P_IP))
-		return XDP_PASS; // not ethernet + ip, ignore
+		return accept_packet(stats); // not ethernet + ip, ignore
 
 	struct iphdr *ip_head = (void *)(eth + 1);
 	// must have ip header, otherwise ignore
-	if((void *)(ip_head + 1) > data_end) return XDP_PASS;
+	if((void *)(ip_head + 1) > data_end) return accept_packet(stats);
 
 	// ignore if not ivp4
-	if(ip_head->version != 4) return XDP_PASS;
+	if(ip_head->version != 4) return accept_packet(stats);
 
 	__u32 rule_cnt = rules->rule_cnt;
 	if (rule_cnt > MAX_RULES)
@@ -167,17 +203,21 @@ SEC("xdp") int xdp_fw(struct xdp_md *ctx) {
 		if(i >= rule_cnt) break;
 		int result = match_rule(&rules->rules[i], ip_head, data_end, i, data_end - data);
 		if(result == RULE_MATCH_ALLOW) {
-			if(rules->rules[i].flags & RULE_ACTION_BLOCK) return XDP_DROP;
-			else return XDP_PASS;
+			record_rule_match(i);
+			if(rules->rules[i].flags & RULE_ACTION_BLOCK) return drop_packet(stats);
+			else return accept_packet(stats);
+		}
+		if(result == RULE_MATCH_TB_DENY) {
+			record_rule_match(i);
+			record_rate_limit_hit(stats);
 		}
 		// result = RULE_NOMATCH | RULE_MATCH_TB_DENY,
 		// both skip rule
 	}
 
-	// TODO! prometheus stats?
 	int def_action = (rules->flags & RULESET_DEFAULT_BLOCK) ? XDP_DROP : XDP_PASS;
-	return def_action;
+	if(def_action == XDP_DROP) return drop_packet(stats);
+	return accept_packet(stats);
 }
 
 char LICENSE[] SEC("license") = "GPL";
-

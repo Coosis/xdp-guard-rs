@@ -2,7 +2,7 @@
 
 use std::sync::{Arc, Mutex};
 
-use axum::{Router, routing::post};
+use axum::{Router, routing::{get, post}};
 use libbpf_rs::{Link, MapCore, MapFlags, Object};
 use anyhow::{Context, Result};
 use nix::net::if_::if_nametoindex;
@@ -102,6 +102,7 @@ async fn main() -> Result<()> {
 
     let app = Router::new()
         .route("/update_rule_toml", post(service::update::handle_toml_ruleset))
+        .route("/metrics", get(service::metrics::handle_metrics))
         .with_state(Arc::new(Mutex::new(state)));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8989")

@@ -1,0 +1,55 @@
+root@ubuntu-c-2-sfo2:~# sudo ./pktgen-udp64-flood.sh -i eth1 -d 10.120.0.2 -t 300 -q 4
+configuring pktgen...
+
+pktgen UDP flood
+  iface:      eth1
+  src ip:     10.120.0.3
+  dst ip:     10.120.0.2
+  dst mac:    5a:5d:a5:2c:cf:9b
+  udp port:   12345
+  pkt size:   60
+  threads:    4
+  count:      0
+  duration:   300s
+
+starting pktgen...
+
+stopping pktgen...
+
+pktgen results:
+
+== eth1@0 ==
+     flows: 0 flowlen: 0
+     pkts-sofar: 34500885  errors: 0
+     flows: 0
+Result: OK: 299904578(c299877426+d27151) usec, 34500885 (60byte,0frags)
+  115039pps 55Mb/sec (55218720bps) errors: 0
+
+== eth1@1 ==
+     flows: 0 flowlen: 0
+     pkts-sofar: 33644772  errors: 0
+     flows: 0
+Result: OK: 299904503(c299848542+d55961) usec, 33644772 (60byte,0frags)
+  112184pps 53Mb/sec (53848320bps) errors: 0
+
+== eth1@2 ==
+     flows: 0 flowlen: 0
+     pkts-sofar: 33638848  errors: 0
+     flows: 0
+Result: OK: 299904502(c299717022+d187479) usec, 33638848 (60byte,0frags)
+  112165pps 53Mb/sec (53839200bps) errors: 0
+
+== eth1@3 ==
+     flows: 0 flowlen: 0
+     pkts-sofar: 34410031  errors: 0
+     flows: 0
+Result: OK: 299904502(c299873568+d30933) usec, 34410031 (60byte,0frags)
+  114736pps 55Mb/sec (55073280bps) errors: 0
+
+== total ==
+total pps:  454124
+total Mpps: 0.454
+total Mbps: 216.000
+total Gbps: 0.216
+elapsed:    300.005s
+root@ubuntu-c-2-sfo2:~#

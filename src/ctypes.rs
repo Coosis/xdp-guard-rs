@@ -1,6 +1,6 @@
 use std::mem::{align_of, offset_of, size_of};
 use serde::{Deserialize, Serialize};
-const MAX_RULES: usize = 32; // WARN: must match header file's value
+pub const MAX_RULES: usize = 32; // WARN: must match header file's value
 
 const RULE_MATCH_DST_IP: u16 =     1 << 0;
 const RULE_MATCH_SRC_IP: u16 =     1 << 1;
@@ -43,6 +43,14 @@ pub struct fw_rule {
 	flags: u16,
 	proto: u8,
 	_pad: u8,
+}
+
+#[repr(C)]
+#[derive(Debug, Default, Clone, Copy)]
+pub struct fw_stats {
+    pub accepted_packets: u64,
+    pub dropped_packets: u64,
+    pub rate_limit_hits: u64,
 }
 
 impl fw_rule {
@@ -169,4 +177,11 @@ const _: () = {
 
     assert!(size_of::<fw_meta>() == 4);
     assert!(align_of::<fw_meta>() == 4);
+
+    assert!(size_of::<fw_stats>() == 24);
+    assert!(align_of::<fw_stats>() == 8);
+
+    assert!(offset_of!(fw_stats, accepted_packets) == 0);
+    assert!(offset_of!(fw_stats, dropped_packets) == 8);
+    assert!(offset_of!(fw_stats, rate_limit_hits) == 16);
 };

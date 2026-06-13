@@ -5,6 +5,12 @@ struct tb_state {
 	__u64 last_ns;
 };
 
+struct fw_stats {
+	__u64 accepted_packets;
+	__u64 dropped_packets;
+	__u64 rate_limit_hits;
+};
+
 #define RULE_MATCH_DST_IP     (1 << 0)
 #define RULE_MATCH_SRC_IP     (1 << 1)
 #define RULE_MATCH_DST_PORT   (1 << 2)
@@ -84,6 +90,13 @@ STATIC_ASSERT(__alignof__(struct tb_state) == 8, "tb_state alignment changed");
 
 STATIC_ASSERT(OFFSETOF(struct tb_state, tokens) == 0, "bad offset");
 STATIC_ASSERT(OFFSETOF(struct tb_state, last_ns) == 8, "bad offset");
+
+STATIC_ASSERT(sizeof(struct fw_stats) == 24, "fw_stats size changed");
+STATIC_ASSERT(__alignof__(struct fw_stats) == 8, "fw_stats alignment changed");
+
+STATIC_ASSERT(OFFSETOF(struct fw_stats, accepted_packets) == 0, "bad offset");
+STATIC_ASSERT(OFFSETOF(struct fw_stats, dropped_packets) == 8, "bad offset");
+STATIC_ASSERT(OFFSETOF(struct fw_stats, rate_limit_hits) == 16, "bad offset");
 
 STATIC_ASSERT(sizeof(struct fw_ruleset) == 8 + MAX_RULES * sizeof(struct fw_rule), "fw_ruleset size changed");
 STATIC_ASSERT(__alignof__(struct fw_ruleset) == 8, "fw_ruleset alignment changed");

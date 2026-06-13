@@ -1,0 +1,29 @@
+root@ubuntu-c-2-sfo2:~# uname -a
+Linux ubuntu-c-2-sfo2 6.8.0-71-generic #71-Ubuntu SMP PREEMPT_DYNAMIC Tue Jul 22 16:52:38 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux
+root@ubuntu-c-2-sfo2:~# cat /etc/os-release
+PRETTY_NAME="Ubuntu 24.04.4 LTS"
+NAME="Ubuntu"
+VERSION_ID="24.04"
+VERSION="24.04.4 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+ID=ubuntu
+ID_LIKE=debian
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+UBUNTU_CODENAME=noble
+LOGO=ubuntu-logo
+root@ubuntu-c-2-sfo2:~# sudo nft list ruleset
+table inet bench {
+	chain input {
+		type filter hook input priority filter; policy accept;
+		iifname "eth1" udp dport 12345 counter packets 269509207 bytes 12397423522 drop
+	}
+}
+root@ubuntu-c-2-sfo2:~# ip link show dev eth1
+3: eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 xdp qdisc fq_codel state UP mode DEFAULT group default qlen 1000
+    link/ether 5a:5d:a5:2c:cf:9b brd ff:ff:ff:ff:ff:ff
+    prog/xdp id 791 name xdp_fw tag 60a7db45e1795ca1 jited
+    altname enp0s4
+    altname ens4
