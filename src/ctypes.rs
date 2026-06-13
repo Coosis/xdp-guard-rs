@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 use std::mem::{align_of, offset_of, size_of};
 use serde::{Deserialize, Serialize};
 pub const MAX_RULES: usize = 32; // WARN: must match header file's value

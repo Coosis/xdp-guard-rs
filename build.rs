@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 use std::{path::PathBuf, process::Command};
 use std::env;
 

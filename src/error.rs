@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 use axum::{http::StatusCode, response::IntoResponse};
 use thiserror::Error;
 

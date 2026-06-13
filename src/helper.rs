@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 pub fn as_byte_slice<'a, T>(val: &'a T) -> &'a [u8] {
     unsafe {
         std::slice::from_raw_parts(

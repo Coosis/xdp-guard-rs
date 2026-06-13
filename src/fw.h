@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT */
+
 #include <linux/bpf.h>
 
 struct tb_state {

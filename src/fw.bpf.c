@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0-only */
+
 #include "fw.h"
 #include <linux/if_ether.h>
 #include <linux/ip.h>
