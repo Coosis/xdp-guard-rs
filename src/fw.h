@@ -43,9 +43,10 @@ struct fw_rule {
 	__u16 flags;
 	// protocol(use ip header's protocol number directly)
 	__u8 proto;
-	__u8 tb_idx;
+	__u8 _pad;
 };
 
+#define NUM_GENERATIONS 3
 #define MAX_RULES 32
 #define RULESET_DEFAULT_BLOCK (1 << 0)
 struct fw_ruleset {
@@ -76,7 +77,7 @@ STATIC_ASSERT(OFFSETOF(struct fw_rule, src_port_begin)  == 36, "bad offset");
 STATIC_ASSERT(OFFSETOF(struct fw_rule, src_port_end)    == 38, "bad offset");
 STATIC_ASSERT(OFFSETOF(struct fw_rule, flags)           == 40, "bad offset");
 STATIC_ASSERT(OFFSETOF(struct fw_rule, proto)           == 42, "bad offset");
-STATIC_ASSERT(OFFSETOF(struct fw_rule, tb_idx)          == 43, "bad offset");
+STATIC_ASSERT(OFFSETOF(struct fw_rule, _pad)             == 43, "bad offset");
 
 STATIC_ASSERT(sizeof(struct tb_state) == 16, "tb_state size changed");
 STATIC_ASSERT(__alignof__(struct tb_state) == 8, "tb_state alignment changed");

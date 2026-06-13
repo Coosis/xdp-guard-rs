@@ -1,0 +1,15 @@
+# rejected because it wants to match ports, but doesn't set protocol = tcp | udp
+default = "block"
+
+[[rules]]
+action = "allow"
+priority = 10
+
+[rules.src_ip]
+ip4 = "10.10.10.5"
+mask4 = "255.255.2.0"
+
+[rules.dst_port]
+port_begin = 29347
+port_end = 32999
+

@@ -1,0 +1,19 @@
+# dangerous, because by default it blocks; upon updating, 
+# the tcp packets are dropped and appears as dead, 
+# the only option might be to restart the program.
+# best leave out the normal tcp path.
+default = "block"
+
+[[rules]]
+action = "allow"
+priority = 10
+protocol = "tcp"
+
+[rules.src_ip]
+ip4 = "10.10.10.5"
+mask4 = "255.255.2.0"
+
+[rules.dst_port]
+port_begin = 29347
+port_end = 32999
+

@@ -1,0 +1,15 @@
+default = "allow"
+
+[[rules]]
+action = "block"
+priority = 10
+protocol = "tcp"
+
+[rules.src_ip]
+ip4 = "10.10.10.5"
+mask4 = "255.255.2.0"
+
+[rules.dst_port]
+port_begin = 29347
+port_end = 32999
+

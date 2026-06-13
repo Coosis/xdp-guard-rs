@@ -4,7 +4,6 @@
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_endian.h>
 
-#define NUM_GENERATIONS 3
 struct {
     __uint(type, BPF_MAP_TYPE_ARRAY);
     __uint(max_entries, NUM_GENERATIONS);
@@ -12,7 +11,7 @@ struct {
     __type(value, struct fw_ruleset);
 } rulesets SEC(".maps");
 
-#define MAX_TBS 8
+#define MAX_TBS MAX_RULES
 struct {
     __uint(type, BPF_MAP_TYPE_PERCPU_ARRAY);
     __uint(max_entries, MAX_TBS);
@@ -36,6 +35,7 @@ static __always_inline int match_rule(
 		struct fw_rule *rule,
 		struct iphdr *ip_head,
 		void *data_end,
+		__u32 rule_idx,
 		__u64 data_sz // only used when tb is turned on + count packet bytes
 		) {
 	if(rule == NULL) return RULE_NOMATCH;
@@ -96,7 +96,7 @@ static __always_inline int match_rule(
 
 	// token bucket update if necessary
 	if(rule->flags & RULE_USE_TB) {
-		__u32 tb_idx = rule->tb_idx;
+		__u32 tb_idx = rule_idx;
 		if(tb_idx >= MAX_TBS) return RULE_NOMATCH; // possible corrupted rule, skip
 		struct tb_state *state = bpf_map_lookup_elem((void *)&tb_state, &tb_idx);
 		if(state == NULL) return RULE_NOMATCH; // possible corrupted rule, skip
@@ -165,7 +165,7 @@ SEC("xdp") int xdp_fw(struct xdp_md *ctx) {
 	#pragma unroll
 	for(__u32 i = 0; i < MAX_RULES; i++) {
 		if(i >= rule_cnt) break;
-		int result = match_rule(&rules->rules[i], ip_head, data_end, data_end - data);
+		int result = match_rule(&rules->rules[i], ip_head, data_end, i, data_end - data);
 		if(result == RULE_MATCH_ALLOW) {
 			if(rules->rules[i].flags & RULE_ACTION_BLOCK) return XDP_DROP;
 			else return XDP_PASS;
@@ -174,7 +174,6 @@ SEC("xdp") int xdp_fw(struct xdp_md *ctx) {
 		// both skip rule
 	}
 
-	bpf_printk("myxdp hit\n");
 	// TODO! prometheus stats?
 	int def_action = (rules->flags & RULESET_DEFAULT_BLOCK) ? XDP_DROP : XDP_PASS;
 	return def_action;
